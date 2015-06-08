@@ -24,7 +24,7 @@ exclude = [
     'Sources',
 ]
 
-def download(url):
+def download(url, suite_prefix=None, extra_excludes=[]):
     command = [
         'rsync', '-aqP',
         '--exclude=.git',
@@ -32,8 +32,13 @@ def download(url):
     with open(os.path.join(DIR, 'excludes.list'), 'r') as exclude_frozen:
         for line in exclude_frozen:
             exclude.append(line.strip())
+    for pattern in extra_excludes:
+        exclude.append(pattern)
     command.extend(['--exclude=' + e for e in exclude])
-    command.extend([url, DISTS_DIR])
+    dists_dir = DISTS_DIR
+    if suite_prefix is not None:
+        dists_dir = os.path.join(dists_dir, suite_prefix)
+    command.extend([url, dists_dir])
     print(command)
     subprocess.check_call(command)
 
@@ -63,7 +68,10 @@ def main(args):
                                   cwd=DISTS_DIR)
         download(UBUNTU_DISTS_MIRROR)
         download(UBUNTU_RTM_DISTS_MIRROR)
-        download(PHONE_OVERLAY_DISTS_MIRROR)
+        download(
+            PHONE_OVERLAY_DISTS_MIRROR,
+            suite_prefix='ci-train-ppa-service/ubuntu/stable-phone-overlay',
+            extra_excludes=['devel'])
 
         newest_timestamp = 0
         for root, dirs, files in os.walk(DISTS_DIR):
