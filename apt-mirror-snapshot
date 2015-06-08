@@ -38,6 +38,8 @@ def download(url, suite_prefix=None, extra_excludes=[]):
     dists_dir = DISTS_DIR
     if suite_prefix is not None:
         dists_dir = os.path.join(dists_dir, suite_prefix)
+    if not os.path.exists(os.path.dirname(dists_dir)):
+        os.makedirs(os.path.dirname(dists_dir))
     command.extend([url, dists_dir])
     print(command)
     subprocess.check_call(command)
