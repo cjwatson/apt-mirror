@@ -8,6 +8,7 @@ import shutil
 
 UBUNTU_DISTS_MIRROR = "/home/ubuntu-archive/mirror/ubuntu/dists/"
 UBUNTU_RTM_DISTS_MIRROR = "/home/ubuntu-archive/mirror/ubuntu-rtm/dists/"
+PHONE_OVERLAY_DISTS_MIRROR = "/home/ubuntu-archive/mirror/phone-overlay/dists/"
 DIR = os.path.abspath(os.path.dirname(__file__))
 
 DISTS_DIR = os.path.join(DIR, "dists")
@@ -62,6 +63,7 @@ def main(args):
                                   cwd=DISTS_DIR)
         download(UBUNTU_DISTS_MIRROR)
         download(UBUNTU_RTM_DISTS_MIRROR)
+        download(PHONE_OVERLAY_DISTS_MIRROR)
 
         newest_timestamp = 0
         for root, dirs, files in os.walk(DISTS_DIR):
