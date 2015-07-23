@@ -14,6 +14,17 @@ import os
 import subprocess
 import sys
 
+try:
+    from urllib.request import (
+        build_opener,
+        HTTPErrorProcessor,
+        )
+except ImportError:
+    from urllib2 import (
+        build_opener,
+        HTTPErrorProcessor,
+        )
+
 
 cgitb.enable()
 
@@ -110,6 +121,46 @@ def dists(timestamp=None, path=None):
     return response
 
 
+class NoRedirect(HTTPErrorProcessor):
+
+    def http_response(self, request, response):
+        return response
+
+    https_response = http_response
+
+
+def pool(archive, debfile=None):
+    opener = build_opener(NoRedirect)
+    response = opener.open(
+        "https://launchpad.net/%s/+files/%s" % (archive, debfile))
+    url = response.headers["Location"].replace("https://", "http://")
+    redirect = HTTPResponse()
+    redirect.status = 301
+    redirect.headers["Location"] = url
+    redirect.body = None
+    return redirect
+
+
+archives = {
+    "ubuntu": "ubuntu/+archive/primary",
+    "ubuntu-rtm": "ubuntu-rtm/+archive/primary",
+    "ci-train-ppa-service/ubuntu/stable-phone-overlay":
+        "~ci-train-ppa-service/+archive/ubuntu/stable-phone-overlay",
+    }
+
+
+def get_archive(path):
+    if len(path) >= 4:
+        ppa_path = "/".join(path[1:4])
+        if ppa_path in archives:
+            return archives[ppa_path]
+
+    if path[1].startswith("14.09"):
+        return archives["ubuntu-rtm"]
+    else:
+        return archives["ubuntu"]
+
+
 def main():
     try:
         path = os.environ["PATH_INFO"].split("/")
@@ -122,6 +173,13 @@ def main():
             if not timestamp.isdigit():
                 raise HTTPError(404)
             response = dists(timestamp=timestamp, path="/".join(path[2:]))
+        elif len(path) > 1 and path[0] == "pool":
+            response = pool(get_archive(path), debfile=path[-1])
+        elif len(path) > 2 and path[1] == "pool":
+            timestamp = path[0]
+            if not timestamp.isdigit():
+                raise HTTPError(404)
+            response = pool(get_archive(path), debfile=path[-1])
         else:
             raise HTTPError(404)
         response.output()
