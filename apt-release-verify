@@ -22,8 +22,9 @@ verify_one () {
 if [ -n "$1" ]; then
     verify_one "$1"
 else
-    for repository in $(find . -name 'Release.gpg'); do
-	verify_one "$repository"
+    for suite in $(git status --porcelain | cut -b4- | cut -d/ -f1 | sort -u); do
+	[ -e "$suite/Release.gpg" ] || continue
+	verify_one "$suite/Release.gpg"
     done
     echo "Verified all repositories."
 fi
