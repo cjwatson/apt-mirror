@@ -17,11 +17,13 @@ exclude = [
     'installer-*',
     'Contents-*',
     'dist-upgrader-all',
+    'signed',
     'uefi',
     'i18n',
     '*.gz',
     'Packages',
     'Sources',
+    'by-hash',
 ]
 
 def download(url, suite_prefix=None, extra_excludes=[]):
